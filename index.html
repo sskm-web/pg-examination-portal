@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    
     <!-- Extremely strict mobile viewport to prevent zooming and mimic a native app -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- iOS Web App Meta Tags for native-like full-screen if added to homescreen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Exam Portal">
+    <meta name="theme-color" content="#0d6efd">
     
     <title>PG Examination Portal</title>
     
@@ -21,6 +24,7 @@
             overflow: hidden; /* Locks the parent body from scrolling */
             background-color: #f4f6f9; /* Matches your portal's background color to hide load flashes */
             overscroll-behavior-y: none; /* Prevents mobile "pull-to-refresh" bounce on the parent */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Force the iframe to behave like a block element filling 100% of the screen */
@@ -29,6 +33,39 @@
             height: 100%;
             border: none;
             display: block;
+        }
+
+        /* Styling for the Fullscreen Workaround Button */
+        #fs-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+            background-color: #0d6efd; /* Matches Bootstrap Primary Blue */
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        
+        #fs-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Simple SVG icon for the button */
+        .fs-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
         }
     </style>
 </head>
@@ -40,6 +77,58 @@
         allow="fullscreen" 
         sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-downloads">
     </iframe>
+
+    <!-- Fullscreen Action Button -->
+    <button id="fs-btn">
+        <svg class="fs-icon" viewBox="0 0 24 24">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+        Hide Address Bar
+    </button>
+
+    <script>
+        const fsBtn = document.getElementById('fs-btn');
+
+        // iOS Safari does not support the Fullscreen API on standard web pages.
+        // If the user is on an iPhone/iPad, we hide the button automatically.
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (isIOS) {
+            fsBtn.style.display = 'none';
+        }
+
+        // Trigger Fullscreen on Android/Desktop when clicked
+        fsBtn.addEventListener('click', () => {
+            const docEl = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen().catch(err => console.log(err));
+                } else if (docEl.webkitRequestFullscreen) { /* Safari/Older Chrome */
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.msRequestFullscreen) { /* IE11 */
+                    docEl.msRequestFullscreen();
+                }
+            }
+        });
+
+        // Hide the button when the device enters fullscreen mode, show it if they exit
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fsBtn.style.display = 'none'; // Hide when in fullscreen
+            } else {
+                if (!isIOS) fsBtn.style.display = 'flex'; // Show if they swipe down to exit
+            }
+        });
+        
+        // Handle webkit prefix for older Android browsers
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (document.webkitFullscreenElement) {
+                fsBtn.style.display = 'none';
+            } else {
+                if (!isIOS) fsBtn.style.display = 'flex';
+            }
+        });
+    </script>
 
 </body>
 </html>
