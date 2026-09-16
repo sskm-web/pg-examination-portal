@@ -67,18 +67,58 @@
             height: 16px;
             fill: currentColor;
         }
+
+        /* Professional Loading Screen */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #0d6efd;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(13, 110, 253, 0.2);
+            border-top: 4px solid #0d6efd;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .message { font-weight: bold; text-align: center; line-height: 1.4; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
+    <!-- Loading Screen Overlay -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div class="message">
+            We are preparing your portal...<br>
+            <span style="font-weight: normal; font-size: 0.85em; color: #6c757d;">Please wait a moment</span>
+        </div>
+    </div>
+
     <!-- Embedded Google Apps Script Web App -->
     <iframe 
+        id="gas-frame"
         src="https://script.google.com/a/macros/sabangcollege.ac.in/s/AKfycbzbq5Qz2DOs0nis9M8kHqsbnt9nuu5JrkmCtnsG9YTqd0vzLoG4fDQrTDLdMfKA8a1y/exec" 
         allow="fullscreen" 
-        sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-downloads">
+        sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-downloads"
+        onload="hideLoader()">
     </iframe>
 
-<!-- Fullscreen Action Button (Icon Only) -->
+    <!-- Fullscreen Action Button (Icon Only) -->
     <button id="fs-btn" title="Fullscreen" style="padding: 14px; border-radius: 50%;">
         <svg class="fs-icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
@@ -86,6 +126,15 @@
     </button>
 
     <script>
+        // Smoothly hide the loader when the iframe finishes loading
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.visibility = 'hidden';
+            }, 400); // Matches the CSS transition duration
+        }
+
         const fsBtn = document.getElementById('fs-btn');
 
         // iOS Safari does not support the Fullscreen API on standard web pages.
