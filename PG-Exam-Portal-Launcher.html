@@ -52,8 +52,32 @@
       color: #4a5568; 
       font-size: 15px; 
       line-height: 1.6; 
-      margin-bottom: 30px; 
+      margin-bottom: 20px; 
     }
+    
+    /* NEW: Visual Instruction Box */
+    .instruction-box {
+      display: none; /* Hidden by default, shown by JS on mobile */
+      background-color: #fff3cd;
+      border: 1px solid #ffecb5;
+      color: #664d03;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+    }
+    .instruction-box span.dot-icon {
+      font-size: 18px;
+      font-weight: bold;
+      background: #ffda6a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #000;
+      letter-spacing: 1px;
+    }
+
     .btn { 
       display: block; 
       background: #0d6efd; 
@@ -97,6 +121,12 @@
     
     <div class="divider"></div>
     
+    <!-- Intelligent Mobile Warning -->
+    <div id="mobile-warning" class="instruction-box">
+      ⚠️ <b>You are inside the Gmail App.</b><br><br>
+      If the blue button below fails, tap the <span class="dot-icon">⋮</span> (three dots) or compass icon in the top corner of your screen and select <b>"Open in Chrome/Safari"</b>.
+    </div>
+
     <p>Please click below to continue with Native Browser.</p>
     
     <a id="launch-btn" href="https://sskm-web.github.io/pg-examination-portal" target="_blank" class="btn">
@@ -109,11 +139,38 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       var btn = document.getElementById("launch-btn");
+      var warningBox = document.getElementById("mobile-warning");
       var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      var targetUrl = "https://sskm-web.github.io/pg-examination-portal";
+      var urlWithoutHttps = targetUrl.replace(/^https?:\/\//, '');
       
-      // If Android, inject the Chrome intent scheme to force-break the WebView
+      // Mobile Detection Check
+      if (/android|ipad|iphone|ipod/i.test(userAgent)) {
+        // Unhide the manual breakout instructions for mobile users
+        warningBox.style.display = "block";
+      }
+
+      // Android Breakout Attempt
       if (/android/i.test(userAgent)) {
-        btn.href = "intent://sskm-web.github.io/pg-examination-portal#Intent;scheme=https;package=com.android.chrome;end";
+        // Try the more aggressive Google Chrome specific deep link
+        btn.href = "googlechrome://navigate?url=" + urlWithoutHttps;
+        
+        // Add a fallback click event just in case googlechrome:// fails
+        btn.addEventListener("click", function(e) {
+            setTimeout(function() {
+                window.location.href = targetUrl;
+            }, 500);
+        });
+      } 
+      // iOS Breakout Attempt (Forcing Chrome if installed)
+      else if (/ipad|iphone|ipod/i.test(userAgent) && !window.MSStream) {
+        btn.href = "googlechromes://" + urlWithoutHttps;
+        
+        btn.addEventListener("click", function(e) {
+            setTimeout(function() {
+                window.location.href = targetUrl;
+            }, 500);
+        });
       }
     });
   </script>
